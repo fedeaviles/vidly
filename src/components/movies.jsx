@@ -2,9 +2,10 @@ import React, { Component } from "react";
 import { getMovies } from "../services/fakeMovieService";
 import Like from "./common/like";
 import Pagination from "./common/pagination";
+import { paginate } from "../utils/pagination";
 
 class Movies extends Component {
-  state = { movies: getMovies(), pageSize: 4 };
+  state = { movies: getMovies(), pageSize: 4, currentPage: 1 };
 
   handleLike = (movie) => {
     const movies = [...this.state.movies];
@@ -21,7 +22,7 @@ class Movies extends Component {
   };
 
   handlePageChange = (page) => {
-    console.log(page);
+    this.setState({ currentPage: page });
   };
 
   renderTitle() {
@@ -32,8 +33,10 @@ class Movies extends Component {
   }
 
   renderTable() {
-    const { movies } = this.state;
-    if (movies.length === 0) return null;
+    const { length: count } = this.state.movies;
+    const { movies: allMovies, pageSize, currentPage } = this.state;
+    if (count === 0) return null;
+    const movies = paginate(allMovies, currentPage, pageSize);
     return (
       <table className="table">
         <thead>
@@ -47,7 +50,7 @@ class Movies extends Component {
           </tr>
         </thead>
         <tbody>
-          {this.state.movies.map((movie) => (
+          {movies.map((movie) => (
             <tr key={movie._id}>
               <td>{movie.title}</td>
               <td>{movie.genre.name}</td>
@@ -75,14 +78,15 @@ class Movies extends Component {
   }
 
   render() {
-    const { movies } = this.state;
+    const { movies, pageSize, currentPage } = this.state;
     return (
       <React.Fragment>
         <h1>{this.renderTitle()}</h1>
         {this.renderTable()}
         <Pagination
           itemsCount={movies.length}
-          pageSize={this.state.pageSize}
+          pageSize={pageSize}
+          currentPage={currentPage}
           onPageChange={this.handlePageChange}
         />
       </React.Fragment>
